@@ -1,0 +1,38 @@
+aspect countcalls /* qsort comes from stdlib.h */
+{
+  unsigned count = 0;
+
+  advice call1 before call(% qsort(...)) {
+    count++;
+  }
+
+  advice call2 around call(% qsort(...)) {
+    count++;
+    proceed();
+  }
+
+  advice call3 after call(% qsort(...)) {
+    count++;
+  }
+
+  advice call4 before execution(% compare(...)) {
+    count++;
+  }
+
+  advice call5 around execution(% compare(...)) {
+    count++;
+    proceed();
+  }
+
+  advice call6 after execution(% compare(...)) {
+    count++;
+  }
+
+  advice callMain after execution(% main(...)) {
+    fprintf(stderr, "End by main: Pointcuts are called [MSG: %u] times.\n", count);
+  }
+
+  advice callExit before call(% exit(...)) {
+    fprintf(stderr, "End by exit: Pointcuts are called [MSG: %u] times.\n", count);
+  }
+};

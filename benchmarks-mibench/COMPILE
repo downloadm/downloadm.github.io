@@ -1,0 +1,64 @@
+This document explains how to compile/instrument/run all benchmarks or one selected benchmark.
+More detailed information can be found in the Makefiles and shell scripts.
+
+# Compile/instrument/run all benchmarks
+
+You can compile/run all the benchmarks in this directory using one make command.
+The targets that can be used in the make command are listed as follows.
+
+- build (the default target): build the original benchmarks.
+- small: run the original benchmarks on small inputs.
+- large: run the original benchmarks on large inputs.
+- clean: clean the original benchmarks.
+
+You can instrument/run all the benchmarks in this directory using one make command.
+The targets that can be used in the make command are listed as follows.
+Note that the suffix indicates the instrumentation tool being used.
+The full path and options of the instrumentation tool should be set in
+the file "Makefile.default.TOOLNAME" (at the first line after comments).
+
+- output-movec-monitor: build the instrumented benchmarks using our tool.
+    You can use "O=-O3" to choose a different optimization level.
+      make output-movec-monitor O=-O3
+- small-movec-monitor: run the instrumented benchmarks on small inputs.
+- large-movec-monitor: run the instrumented benchmarks on large inputs.
+- clean-movec-monitor: clean the instrumented benchmarks.
+
+- output-acc
+    You can use "O=-O3" to choose a different optimization level.
+- small-acc
+- large-acc
+- clean-acc
+
+- output-acxx
+    You can use "O=-O3" to choose a different optimization level.
+- small-acxx
+- large-acxx
+- clean-acxx
+
+# Compile/instrument/run one benchmark
+
+You can compile/instrument/run one benchmark using its name (e.g., BENCHMARK) in the make command.
+The targets that can be used in the make command are listed as follows.
+The make options mentioned above also apply.
+
+- BENCHMARK/build
+- BENCHMARK/small
+- BENCHMARK/large
+- BENCHMARK/clean
+
+- BENCHMARK/output-movec-monitor
+- BENCHMARK/small-movec-monitor
+- BENCHMARK/large-movec-monitor
+- BENCHMARK/clean-movec-monitor
+
+- BENCHMARK/output-acc
+- BENCHMARK/small-acc
+- BENCHMARK/large-acc
+- BENCHMARK/clean-acc
+
+- BENCHMARK/output-acxx
+- BENCHMARK/small-acxx
+- BENCHMARK/large-acxx
+- BENCHMARK/clean-acxx
+

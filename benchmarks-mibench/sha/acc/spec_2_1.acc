@@ -1,0 +1,37 @@
+#include <stdio.h>
+
+unsigned count = 0;
+
+before(): call($ sha_transform(...)) {
+    count++;
+}
+
+void around(): call($ sha_transform(...)) {
+    count++;
+    proceed();
+}
+
+after(): call($ sha_transform(...)) {
+    count++;
+}
+
+before(): execution($ sha_update(...)) {
+    count++;
+}
+
+void around(): execution($ sha_update(...)) {
+    count++;
+    proceed();
+}
+
+after(): execution($ sha_update(...)) {
+    count++;
+}
+
+after(): execution($ main(...)) {
+    fprintf(stderr, "End by main: Pointcuts are called [MSG: %u] times.\n", count);
+}
+
+before(): call($ exit(...)) {
+    fprintf(stderr, "End by exit: Pointcuts are called [MSG: %u] times.\n", count);
+}

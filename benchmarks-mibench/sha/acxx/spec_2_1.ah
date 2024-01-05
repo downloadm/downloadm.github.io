@@ -1,0 +1,48 @@
+#ifndef __SPEC_2_1_AH__
+#define __SPEC_2_1_AH__
+
+#include <stdio.h>
+
+aspect countcalls
+{
+  unsigned count;
+
+  countcalls() : count(0) {
+  }
+
+  advice call("% sha_transform(...)") : before() {
+    count++;
+  }
+
+  advice call("% sha_transform(...)") : around() {
+    count++;
+    tjp->proceed();
+  }
+
+  advice call("% sha_transform(...)") : after() {
+    count++;
+  }
+
+  advice execution("% sha_update(...)") : before() {
+    count++;
+  }
+
+  advice execution("% sha_update(...)") : around() {
+    count++;
+    tjp->proceed();
+  }
+
+  advice execution("% sha_update(...)") : after() {
+    count++;
+  }
+
+  advice execution("% main(...)") : after() {
+    fprintf(stderr, "End by main: Pointcuts are called [MSG: %u] times.\n", count);
+  }
+
+  advice call("% exit(...)") : before() {
+    fprintf(stderr, "End by exit: Pointcuts are called [MSG: %u] times.\n", count);
+  }
+};
+
+#endif

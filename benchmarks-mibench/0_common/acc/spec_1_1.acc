@@ -1,0 +1,30 @@
+#include <stdio.h>
+
+unsigned allocated = 0; // The number of allocated memories.
+char debug_1_1 = 0;     // Whether print debug information.
+
+after(): call($ malloc(...))
+{
+  allocated++;
+}
+
+after(): call($ free(...))
+{
+  allocated--;
+}
+
+after(): execution($ main(...))
+{
+  if(allocated > 0)
+    fprintf(stderr, "error: [MSG: %u memory leaks] detected!\n", allocated);
+  else
+    fprintf(stderr, "No memory leaks detected.\n");
+}
+
+before(): call($ exit(...))
+{
+  if(allocated > 0)
+    fprintf(stderr, "error: [MSG: %u memory leaks] detected!\n", allocated);
+  else
+    fprintf(stderr, "No memory leaks detected.\n");
+}

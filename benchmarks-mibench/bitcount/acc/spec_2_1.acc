@@ -1,0 +1,56 @@
+#include <stdio.h>
+
+unsigned count = 0;
+
+before(): call($ rand(...)) {
+    count++;
+}
+
+int around(): call($ rand(...)) {
+    count++;
+    return proceed();
+}
+
+after(): call($ rand(...)) {
+    count++;
+}
+
+before(): execution($ bit_shifter(...)) {
+    count++;
+}
+
+int around(): execution($ bit_shifter(...)) {
+    count++;
+    return proceed();
+}
+
+/* A bug report for ACC.
+Note that the count reported by ACC is different from that of AC++ and Movec.
+Because ACC has bugs in the implementation of "after execution" pointcuts;
+the code associated with each "after execution" pointcut is incorrectly
+executed twice, instead of once, when an "around execution" pointcut also
+exists for the same join point.
+
+For example, in file bitcnts.c, function bit_shifter, ACC generates
+a function __utac_acc__spec_2_1__5 for the around execution pointcut,
+a function bit_shifterutac__exec__ori for proceed(), and
+a function __utac_acc__spec_2_1__6 for the after execution pointcut.
+However, __utac_acc__spec_2_1__6 is incorrectly called twice, both
+after __utac_acc__spec_2_1__5 and in bit_shifterutac__exec__ori.
+
+As a result, for the small input,
+both AC++ and Movec print the final count being 225021.
+But ACC executes the code associated with the "after execution" pointcut for
+75000 more times, and prints the final count being 225021 + 75000 = 300021. */
+
+after(): execution($ bit_shifter(...)) {
+    count++;
+}
+
+after(): execution($ main(...)) {
+    fprintf(stderr, "End by main: Pointcuts are called [MSG: %u] times.\n", count);
+}
+
+before(): call($ exit(...)) {
+    fprintf(stderr, "End by exit: Pointcuts are called [MSG: %u] times.\n", count);
+}

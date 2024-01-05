@@ -1,0 +1,48 @@
+#ifndef __SPEC_2_1_AH__
+#define __SPEC_2_1_AH__
+
+#include <stdio.h>
+
+aspect countcalls
+{
+  unsigned count;
+
+  countcalls() : count(0) {
+  }
+
+  advice call("% gsm_asr(...)") : before() {
+    count++;
+  }
+
+  advice call("% gsm_asr(...)") : around() {
+    count++;
+    tjp->proceed();
+  }
+
+  advice call("% gsm_asr(...)") : after() {
+    count++;
+  }
+
+  advice execution("% gsm_mult(...)") || execution("% gsm_sub(...)") : before() {
+    count++;
+  }
+
+  advice execution("% gsm_mult(...)") || execution("% gsm_sub(...)") : around() {
+    count++;
+    tjp->proceed();
+  }
+
+  advice execution("% gsm_mult(...)") || execution("% gsm_sub(...)") : after() {
+    count++;
+  }
+
+  advice execution("% main(...)") : after() {
+    fprintf(stderr, "End by main: Pointcuts are called [MSG: %u] times.\n", count);
+  }
+
+  advice call("% exit(...)") : before() {
+    fprintf(stderr, "End by exit: Pointcuts are called [MSG: %u] times.\n", count);
+  }
+};
+
+#endif

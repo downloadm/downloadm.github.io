@@ -1,0 +1,48 @@
+#ifndef __SPEC_2_1_AH__
+#define __SPEC_2_1_AH__
+
+#include <stdio.h>
+
+aspect countcalls
+{
+  unsigned count;
+
+  countcalls() : count(0) {
+  }
+
+  advice call("% memcpy(...)") : before() {
+    count++;
+  }
+
+  advice call("% memcpy(...)") : around() {
+    count++;
+    tjp->proceed();
+  }
+
+  advice call("% memcpy(...)") : after() {
+    count++;
+  }
+
+  advice execution("% setup_brightness_lut(...)") : before() {
+    count++;
+  }
+
+  advice execution("% setup_brightness_lut(...)") : around() {
+    count++;
+    tjp->proceed();
+  }
+
+  advice execution("% setup_brightness_lut(...)") : after() {
+    count++;
+  }
+
+  advice execution("% main(...)") : after() {
+    fprintf(stderr, "End by main: Pointcuts are called [MSG: %u] times.\n", count);
+  }
+
+  advice call("% exit(...)") : before() {
+    fprintf(stderr, "End by exit: Pointcuts are called [MSG: %u] times.\n", count);
+  }
+};
+
+#endif

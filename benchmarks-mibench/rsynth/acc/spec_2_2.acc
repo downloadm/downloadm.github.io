@@ -1,0 +1,27 @@
+#include <stdio.h>
+
+before(): call($ linear(...)) {
+  fprintf(stderr, "before call linear.\n");
+}
+
+float around(): call($ linear(...)) {
+  fprintf(stderr, "around call linear.\n");
+  return proceed();
+}
+
+after(): call($ linear(...)) {
+  fprintf(stderr, "after call linear.\n");
+}
+
+before(): execution($ setabc(...)) {
+  fprintf(stderr, "before execute setabc.\n");
+}
+
+void around(): execution($ setabc(...)) {
+  fprintf(stderr, "around execute setabc.\n");
+  proceed();
+}
+
+after(): execution($ setabc(...)) {
+  fprintf(stderr, "after execute setabc.\n");
+}

@@ -1,0 +1,37 @@
+#include <stdio.h>
+
+unsigned count = 0;
+
+before(): call($ adpcm_coder(...)) {
+    count++;
+}
+
+void around(): call($ adpcm_coder(...)) {
+    count++;
+    proceed();
+}
+
+after(): call($ adpcm_coder(...)) {
+    count++;
+}
+
+before(): execution($ adpcm_decoder(...)) {
+    count++;
+}
+
+void around(): execution($ adpcm_decoder(...)) {
+    count++;
+    proceed();
+}
+
+after(): execution($ adpcm_decoder(...)) {
+    count++;
+}
+
+after(): execution($ main(...)) {
+    fprintf(stderr, "End by main: Pointcuts are called [MSG: %u] times.\n", count);
+}
+
+before(): call($ exit(...)) {
+    fprintf(stderr, "End by exit: Pointcuts are called [MSG: %u] times.\n", count);
+}

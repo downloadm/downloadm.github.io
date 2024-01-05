@@ -1,0 +1,79 @@
+#ifndef __SPEC_1_1_AH__
+#define __SPEC_1_1_AH__
+
+#include <map>
+#include <iostream>
+
+/// The information of an allocated memory block.
+struct blockInfo
+{
+  unsigned size;
+  unsigned line;
+
+  blockInfo(unsigned size_, unsigned line_)
+          : size(size_), line(line_)
+  {}
+};
+
+/// The aspect for detecting memory leaks.
+aspect memleak
+{
+  std::map<const void *, blockInfo> map_addr_info;
+  unsigned allocated;  // The number of allocated memories.
+  bool debug;          // Whether print debug information.
+
+  memleak() : allocated(0), debug(0)
+  {}
+
+  advice call ("% malloc(...)") : after()
+  {
+    void    *addr = static_cast<void *>(*(tjp->result()));
+    unsigned size = (unsigned)(*(tjp->arg<0>()));
+    unsigned line = tjp->line();
+    map_addr_info.insert(std::make_pair(addr, blockInfo(size, line)));
+    allocated++;
+    if(debug)
+      std::cerr << "Allocated a memory block at " << addr << " "
+                << "(size " << size << ") "
+                << "at line " << line << "\n";
+  }
+
+  advice call ("% free(...)") : after()
+  {
+    void    *addr = static_cast<void *>(*(tjp->arg<0>()));
+    unsigned line = tjp->line();
+    map_addr_info.erase(addr);
+    allocated--;
+    if(debug)
+      std::cerr << "Freed the memory block at " << addr << " "
+                << "at line " << line << "\n";
+  }
+
+  void reportError()
+  {
+    if(allocated > 0)
+      std::cerr << "error: [MSG: " << allocated << " memory leaks] detected!\n";
+    else
+      std::cerr << "No memory leaks detected.\n";
+    if(!map_addr_info.empty() && debug)
+    {
+      std::map<const void *, blockInfo>::iterator iter;
+      for(iter = map_addr_info.begin(); iter != map_addr_info.end(); ++iter)
+        std::cerr << "The memory block at " << iter->first << " "
+                  << "(size " << iter->second.size << ", allocated "
+                  << "at line " << iter->second.line << ") is not freed!\n";
+    }
+  }
+
+  advice execution ("% main(...)") : after()
+  {
+    reportError();
+  }
+
+  advice call ("% exit(...)") : before()
+  {
+    reportError();
+  }
+};
+
+#endif

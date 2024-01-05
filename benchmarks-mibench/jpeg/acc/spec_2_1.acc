@@ -1,0 +1,63 @@
+#include <stdio.h>
+
+unsigned count = 0;
+
+before(): call($ emit_symbol(...)) {
+    count++;
+}
+
+void around(): call($ emit_symbol(...)) {
+    count++;
+    proceed();
+}
+
+after(): call($ emit_symbol(...)) {
+    count++;
+}
+
+before(): call($ jpeg_fill_bit_buffer(...)) {
+    count++;
+}
+
+int around(): call($ jpeg_fill_bit_buffer(...)) {
+    count++;
+    return proceed();
+}
+
+after(): call($ jpeg_fill_bit_buffer(...)) {
+    count++;
+}
+
+before(): execution($ emit_eobrun(...)) {
+    count++;
+}
+
+void around(): execution($ emit_eobrun(...)) {
+    count++;
+    proceed();
+}
+
+after(): execution($ emit_eobrun(...)) {
+    count++;
+}
+
+before(): execution($ jpeg_idct_islow(...)) {
+    count++;
+}
+
+void around(): execution($ jpeg_idct_islow(...)) {
+    count++;
+    proceed();
+}
+
+after(): execution($ jpeg_idct_islow(...)) {
+    count++;
+}
+
+after(): execution($ main(...)) {
+    fprintf(stderr, "End by main: Pointcuts are called [MSG: %u] times.\n", count);
+}
+
+before(): call($ exit(...)) {
+    fprintf(stderr, "End by exit: Pointcuts are called [MSG: %u] times.\n", count);
+}

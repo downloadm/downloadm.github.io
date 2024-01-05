@@ -1,0 +1,60 @@
+#include <stdio.h>
+
+/* A bug report for ACC.
+ACC abnormally aborts when it instruments this program,
+as ACC cannot parse some library headers, e.g., limits.h, and
+some large source files, e.g., pbmsrch_large.c.
+
+To avoid this abortion, in bmhasrch.c, bmhisrch.c and bmhsrch.c,
+one should comment out the following include directive:
+  #include <limits.h>
+and add the following macro definition:
+  #define UCHAR_MAX 255
+Furthermore, in pbmsrch_large.c, for the following two arrays,
+one should delete some elements in the long lists of initial values:
+  const char *find_strings[];
+  const char *search_strings[]; */
+
+unsigned count = 0;
+
+before(): call($ strncmp(...)) {
+    count++;
+}
+
+int around(): call($ strncmp(...)) {
+    count++;
+    return proceed();
+}
+
+after(): call($ strncmp(...)) {
+    count++;
+}
+
+before(): execution($ strsearch(...)) {
+    count++;
+}
+
+char *around(): execution($ strsearch(...)) {
+    count++;
+    return proceed();
+}
+
+/* A bug report for ACC.
+Note that the count reported by ACC is different from that of AC++ and Movec.
+Because ACC has bugs in the implementation of "after execution" pointcuts;
+the code associated with each "after execution" pointcut is incorrectly
+executed twice, instead of once, when an "around execution" pointcut also
+exists for the same join point.
+  See also bitcount/acc/spec_2_1.acc. */
+
+after(): execution($ strsearch(...)) {
+    count++;
+}
+
+after(): execution($ main(...)) {
+    fprintf(stderr, "End by main: Pointcuts are called [MSG: %u] times.\n", count);
+}
+
+before(): call($ exit(...)) {
+    fprintf(stderr, "End by exit: Pointcuts are called [MSG: %u] times.\n", count);
+}

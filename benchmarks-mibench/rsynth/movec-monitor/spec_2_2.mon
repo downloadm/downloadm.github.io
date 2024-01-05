@@ -1,0 +1,38 @@
+aspect countgets
+{
+  unsigned _countgets = 0;
+
+  advice get1 before get(unsigned int num_Elements) {
+    _countgets++;
+  }
+
+  advice get2 around get(unsigned int num_Elements) {
+    _countgets++;
+    proceed();
+  }
+
+  advice get3 after get(unsigned int num_Elements) {
+    _countgets++;
+  }
+
+  advice set1 before set(float natglot_a) {
+    _countgets++;
+  }
+
+  advice set2 around set(float natglot_a) {
+    _countgets++;
+    proceed();
+  }
+
+  advice set3 after set(float natglot_a) {
+    _countgets++;
+  }
+
+  advice callMain after execution(% main(...)) {
+    fprintf(stderr, "End by main: Pointcuts are called [MSG: %u] times.\n", _countgets);
+  }
+
+  advice callExit before call(% exit(...)) {
+    fprintf(stderr, "End by exit: Pointcuts are called [MSG: %u] times.\n", _countgets);
+  }
+};

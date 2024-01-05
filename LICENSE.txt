@@ -1,0 +1,15 @@
+The Aclang Artifact - License
+================================================================================
+
+This artifact (including software and data sets) is provided by the copyright
+holders and contributors, ONLY FOR REVIEW AND EVALUATION PURPOSES. You are
+allowed to use this artifact, provided that the following conditions are met:
+
+1. You are a member of the Program Committee (PC) or the Arifact Evaluation
+   Committee (AEC) of the conference where our submission is under review.
+
+2. You can use this artifact only for evaluation purpose. You should neither
+   disassemble nor modify this artifact in any way.
+
+3. You should keep this artifact confidential, e.g., neither make this artifact
+   publicly available, nor distribute it to other people.

@@ -1,0 +1,35 @@
+#ifndef __SPEC_2_2_AH__
+#define __SPEC_2_2_AH__
+
+#include <stdio.h>
+
+aspect countgets
+{
+  unsigned count;
+
+  countgets() : count(0) {
+  }
+
+  advice set("int BitsRemaining") : before() {
+    count++;
+  }
+
+  advice set("int BitsRemaining") : around() {
+    count++;
+    tjp->proceed();
+  }
+
+  advice set("int BitsRemaining") : after() {
+    count++;
+  }
+
+  advice execution("% main(...)") : after() {
+    fprintf(stderr, "End by main: Pointcuts are called [MSG: %u] times.\n", count);
+  }
+
+  advice call("% exit(...)") : before() {
+    fprintf(stderr, "End by exit: Pointcuts are called [MSG: %u] times.\n", count);
+  }
+};
+
+#endif

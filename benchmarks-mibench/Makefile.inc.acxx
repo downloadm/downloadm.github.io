@@ -1,0 +1,37 @@
+DIRS-acxx := $(sort $(patsubst ./%/acxx,%/,$(shell find . -name acxx)))
+DIRS-acxx := $(filter-out $(IGN_DIRS), $(DIRS-acxx))
+
+OUTPUTS-acxx := $(patsubst %/, %/output-acxx, $(DIRS-acxx))
+SMALLS-acxx  := $(patsubst %/, %/small-acxx,  $(DIRS-acxx))
+LARGES-acxx  := $(patsubst %/, %/large-acxx,  $(DIRS-acxx))
+CLEANS-acxx  := $(patsubst %/, %/clean-acxx,  $(DIRS-acxx))
+
+.PHONY: output-acxx small-acxx $(SMALLS-acxx) large-acxx $(LARGES-acxx) clean-acxx $(CLEANS-acxx)
+
+ifneq ($(REOUTPUT),)
+.PHONY: $(OUTPUTS-acxx)
+endif
+
+output-acxx: $(OUTPUTS-acxx)
+
+$(OUTPUTS-acxx): %/output-acxx: %/acxx
+	@$(MAKE) -C $<
+
+small-acxx: $(SMALLS-acxx)
+
+$(SMALLS-acxx): %/small-acxx: %/output-acxx
+	@echo ""
+	@echo "Running" $(patsubst %/small-acxx, %, $@) "on small ..."
+	@$(MAKE) -C $(patsubst %/small-acxx, %/acxx, $@) small --no-print-directory
+
+large-acxx: $(LARGES-acxx)
+
+$(LARGES-acxx): %/large-acxx: %/output-acxx
+	@echo ""
+	@echo "Running" $(patsubst %/large-acxx, %, $@) "on large ..."
+	@$(MAKE) -C $(patsubst %/large-acxx, %/acxx, $@) large --no-print-directory
+
+clean-acxx: $(CLEANS-acxx)
+
+$(CLEANS-acxx): %/clean-acxx: %/acxx
+	@$(MAKE) -C $< clean

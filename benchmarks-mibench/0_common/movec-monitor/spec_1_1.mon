@@ -1,0 +1,23 @@
+aspect memleak
+{
+  #include <stdio.h>
+
+  unsigned allocated = 0; // The number of allocated memories.
+  char debug_1_1 = 0;     // Whether print debug information.
+
+  advice callMalloc after call(% malloc(% %)) {
+    allocated++;
+  }
+
+  advice callFree after call(% free(% %)) {
+    allocated--;
+  }
+
+  advice execMain after execution(% main(...)) && condition(allocated > 0) {
+    fprintf(stderr, "error: [MSG: %u memory leaks] detected!\n", allocated);
+  }
+
+  advice callExit before call(% exit(...)) && condition(allocated > 0) {
+    fprintf(stderr, "error: [MSG: %u memory leaks] detected!\n", allocated);
+  }
+};

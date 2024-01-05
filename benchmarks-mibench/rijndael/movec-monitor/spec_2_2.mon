@@ -1,0 +1,38 @@
+aspect countgets
+{
+  unsigned _countgets = 0;
+
+  advice get1 before get(% fl_tab[4][256]) {
+    _countgets++;
+  }
+
+  advice get2 around get(% fl_tab[4][256]) {
+    _countgets++;
+    proceed();
+  }
+
+  advice get3 after get(% fl_tab[4][256]) {
+    _countgets++;
+  }
+
+  advice get4 before get(% il_tab[4][256]) {
+    _countgets++;
+  }
+
+  advice get5 around get(% il_tab[4][256]) {
+    _countgets++;
+    proceed();
+  }
+
+  advice get6 after get(% il_tab[4][256]) {
+    _countgets++;
+  }
+
+  advice callMain after execution(% main(...)) {
+    fprintf(stderr, "End by main: Pointcuts are called [MSG: %u] times.\n", _countgets);
+  }
+
+  advice callExit before call(% exit(...)) {
+    fprintf(stderr, "End by exit: Pointcuts are called [MSG: %u] times.\n", _countgets);
+  }
+};

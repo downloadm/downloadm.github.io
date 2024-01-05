@@ -1,0 +1,45 @@
+#include <stdio.h>
+
+unsigned count = 0;
+
+before(): call($ qsort(...)) {
+    count++;
+}
+
+void around(): call($ qsort(...)) {
+    count++;
+    proceed();
+}
+
+after(): call($ qsort(...)) {
+    count++;
+}
+
+before(): execution($ compare(...)) {
+    count++;
+}
+
+int around(): execution($ compare(...)) {
+    count++;
+    return proceed();
+}
+
+/* A bug report for ACC.
+Note that the count reported by ACC is different from that of AC++ and Movec.
+Because ACC has bugs in the implementation of "after execution" pointcuts;
+the code associated with each "after execution" pointcut is incorrectly
+executed twice, instead of once, when an "around execution" pointcut also
+exists for the same join point.
+  See also bitcount/acc/spec_2_1.acc. */
+
+after(): execution($ compare(...)) {
+    count++;
+}
+
+after(): execution($ main(...)) {
+    fprintf(stderr, "End by main: Pointcuts are called [MSG: %u] times.\n", count);
+}
+
+before(): call($ exit(...)) {
+    fprintf(stderr, "End by exit: Pointcuts are called [MSG: %u] times.\n", count);
+}

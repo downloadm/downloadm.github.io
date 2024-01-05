@@ -1,0 +1,135 @@
+# The make command can set the following variables, e.g., make "VAR=val".
+# MOVEC_OPTS: options appended to the tool command.
+# MONITOR_PREFIXES: the prefixes of the monitor files used.
+
+# The parent Makefile can set the following variables:
+# COPY_MAKEFILES: the command for copying makefiles.
+#   It can be omitted if you use the default command.
+# COPY_MORE_MAKEFILES: the additional command for copying makefiles.
+# CUSTOM_TARGETS: the customized targets to be run in instrumentation and build.
+#   Note that all details of these targets should be given in the parent Makefile.
+#   No more actions are executed except these given targets.
+# TARGETS: the targets (in the original benchmark) to be instrumented.
+#   It can be omitted if you use the default target.
+# USE_COMPDB: YES/NO - whether use compilation database in instrumentation.
+# MORE_MOVEC_OPTS: options appended to the tool command.
+# PRE_INSTR_CMDS:  additional commands to be executed before instrumentation.
+# POST_INSTR_CMDS: additional commands to be executed after instrumentation.
+# CLEAN_CMDS: additional commands for a customized clean.
+#
+# ERROR_FILES: the names of the files that contain reported errors.
+#   You can use RUNTYPE in file names to match the run type, e.g., small and large.
+
+MOVEC := movec # Set the path and options of the tool
+MONITOR_PREFIXES ?= *
+MONITOR_FILES := $(sort $(shell ls $(patsubst %, ../../0_common/movec-monitor/%.mon, $(MONITOR_PREFIXES)) $(patsubst %, %.mon, $(MONITOR_PREFIXES)) 2> /dev/null))
+ifneq ($(MONITOR_FILES),) # monitor files exist
+  MOVEC += -m $(MONITOR_FILES)
+endif
+INPUT__DIR := ../src
+OUTPUT_DIR := ../output-movec-monitor
+MORE_MOVEC_OPTS ?= #
+PRE_INSTR_CMDS  ?= #
+POST_INSTR_CMDS ?= #
+TARGETS_JSON := $(patsubst %, %/json, $(TARGETS))
+
+COPY := cp -ra
+RMRF := rm -rf
+COPY_MAKEFILES ?= $(COPY) ../src_makefiles/Makefile $(OUTPUT_DIR)/Makefile
+
+.PHONY: $(OUTPUT_DIR)  all  $(TARGETS)  $(TARGETS_JSON)  clean
+
+ifeq ($(CUSTOM_TARGETS),) # no customized target
+ifeq ($(TARGETS),) # one default target
+ifneq ($(USE_COMPDB),YES) # no compilation database
+$(OUTPUT_DIR): $(INPUT__DIR)
+	$(PRE_INSTR_CMDS)
+	$(MOVEC) -p $(INPUT__DIR) -d $(OUTPUT_DIR) $(MOVEC_OPTS) $(MORE_MOVEC_OPTS)
+	$(POST_INSTR_CMDS)
+	@echo "***Successfully instrumented the benchmark."
+	$(COPY_MAKEFILES)
+	$(COPY_MORE_MAKEFILES)
+	export INSTRU_TOOL="gcc $(O)"; $(MAKE) -C $(OUTPUT_DIR)
+	@echo "***Successfully built the benchmark."
+else # one default target and a compilation database
+$(OUTPUT_DIR): $(INPUT__DIR)/compile_commands.json
+	$(PRE_INSTR_CMDS)
+	$(MOVEC) -p $(INPUT__DIR) -d $(OUTPUT_DIR) $(MOVEC_OPTS) $(MORE_MOVEC_OPTS)\
+		-b $(INPUT__DIR)/compile_commands.json
+	$(POST_INSTR_CMDS)
+	@echo "***Successfully instrumented the benchmark."
+	$(COPY_MAKEFILES)
+	$(COPY_MORE_MAKEFILES)
+	export INSTRU_TOOL="gcc $(O)"; $(MAKE) -C $(OUTPUT_DIR)
+	@echo "***Successfully built the benchmark."
+
+$(INPUT__DIR)/compile_commands.json:
+	cd $(INPUT__DIR) && bear -- make > compile_commands.log 2>&1 && make clean
+endif
+else # many targets and a compilation database
+all: $(TARGETS)
+	@echo "***Successfully built the benchmark."
+
+$(TARGETS): %: %/json
+	$(PRE_INSTR_CMDS)
+	$(MOVEC) -p $(INPUT__DIR) -d $(OUTPUT_DIR) $(MOVEC_OPTS) $(MORE_MOVEC_OPTS)\
+		-b $(INPUT__DIR)/compile_commands.json
+	$(POST_INSTR_CMDS)
+	@echo "***Successfully instrumented the benchmark."
+	$(COPY_MAKEFILES)
+	$(COPY_MORE_MAKEFILES)
+	export INSTRU_TOOL="gcc $(O)"; $(MAKE) -C $(OUTPUT_DIR) $@
+
+$(TARGETS_JSON): %/json:
+	cd $(INPUT__DIR) && bear -- make $(patsubst %/json,%,$@) > compile_commands.log 2>&1 && make clean
+endif
+else  # customized targets
+all: $(CUSTOM_TARGETS)
+	@echo "***Successfully built the benchmark."
+endif
+
+clean:
+	$(RMRF) $(OUTPUT_DIR)
+	cd $(INPUT__DIR) && make clean
+ifeq ($(TARGETS),)
+ifneq ($(USE_COMPDB),YES)
+else
+	$(RMRF) $(INPUT__DIR)/compile_commands.json $(INPUT__DIR)/compile_commands.log
+endif
+else
+	$(RMRF) $(INPUT__DIR)/compile_commands.json $(INPUT__DIR)/compile_commands.log
+endif
+	$(CLEAN_CMDS)
+
+# Count the reported errors
+small:
+	@if [ -z "$${BENCHMARK_RUN_TIMES}" ]; then \
+	     export BENCHMARK_COUNT_DOWN=1; \
+	 else \
+	     export BENCHMARK_COUNT_DOWN="$${BENCHMARK_RUN_TIMES}"; \
+	     echo "==== Run $${BENCHMARK_RUN_TIMES} times ===="; \
+	 fi; \
+	 cd $(OUTPUT_DIR); \
+	 while [ $${BENCHMARK_COUNT_DOWN} -ge 1 ]; do \
+	     ./runme_small.sh; \
+	     export BENCHMARK_COUNT_DOWN=`expr $${BENCHMARK_COUNT_DOWN} - 1`; \
+	 done;
+ifneq ($(ERROR_FILES)$(ERROR_FILES_small),)
+	@../../grep_reported_messages.monitor.sh $(patsubst %,$(OUTPUT_DIR)/%,$(subst RUNTYPE,small,$(ERROR_FILES) $(ERROR_FILES_small)))
+endif
+
+large:
+	@if [ -z "$${BENCHMARK_RUN_TIMES}" ]; then \
+	     export BENCHMARK_COUNT_DOWN=1; \
+	 else \
+	     export BENCHMARK_COUNT_DOWN="$${BENCHMARK_RUN_TIMES}"; \
+	     echo "==== Run $${BENCHMARK_RUN_TIMES} times ===="; \
+	 fi; \
+	 cd $(OUTPUT_DIR); \
+	 while [ $${BENCHMARK_COUNT_DOWN} -ge 1 ]; do \
+	     ./runme_large.sh; \
+	     export BENCHMARK_COUNT_DOWN=`expr $${BENCHMARK_COUNT_DOWN} - 1`; \
+	 done;
+ifneq ($(ERROR_FILES)$(ERROR_FILES_large),)
+	@../../grep_reported_messages.monitor.sh $(patsubst %,$(OUTPUT_DIR)/%,$(subst RUNTYPE,large,$(ERROR_FILES) $(ERROR_FILES_large)))
+endif

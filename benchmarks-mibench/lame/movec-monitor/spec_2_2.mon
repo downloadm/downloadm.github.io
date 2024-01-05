@@ -1,0 +1,25 @@
+aspect countgets
+{
+  unsigned _countgets = 0;
+
+  advice set1 before set(int BitsRemaining) {
+    _countgets++;
+  }
+
+  advice set2 around set(int BitsRemaining) {
+    _countgets++;
+    proceed();
+  }
+
+  advice set3 after set(int BitsRemaining) {
+    _countgets++;
+  }
+
+  advice callMain after execution(% main(...)) {
+    fprintf(stderr, "End by main: Pointcuts are called [MSG: %u] times.\n", _countgets);
+  }
+
+  advice callExit before call(% exit(...)) {
+    fprintf(stderr, "End by exit: Pointcuts are called [MSG: %u] times.\n", _countgets);
+  }
+};

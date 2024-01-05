@@ -1,0 +1,37 @@
+DIRS-movec-monitor := $(sort $(patsubst ./%/movec-monitor,%/,$(shell find . -name movec-monitor)))
+DIRS-movec-monitor := $(filter-out $(IGN_DIRS), $(DIRS-movec-monitor))
+
+OUTPUTS-movec-monitor := $(patsubst %/, %/output-movec-monitor, $(DIRS-movec-monitor))
+SMALLS-movec-monitor  := $(patsubst %/, %/small-movec-monitor,  $(DIRS-movec-monitor))
+LARGES-movec-monitor  := $(patsubst %/, %/large-movec-monitor,  $(DIRS-movec-monitor))
+CLEANS-movec-monitor  := $(patsubst %/, %/clean-movec-monitor,  $(DIRS-movec-monitor))
+
+.PHONY: output-movec-monitor small-movec-monitor $(SMALLS-movec-monitor) large-movec-monitor $(LARGES-movec-monitor) clean-movec-monitor $(CLEANS-movec-monitor)
+
+ifneq ($(REOUTPUT),)
+.PHONY: $(OUTPUTS-movec-monitor)
+endif
+
+output-movec-monitor: $(OUTPUTS-movec-monitor)
+
+$(OUTPUTS-movec-monitor): %/output-movec-monitor: %/movec-monitor
+	@$(MAKE) -C $<
+
+small-movec-monitor: $(SMALLS-movec-monitor)
+
+$(SMALLS-movec-monitor): %/small-movec-monitor: %/output-movec-monitor
+	@echo ""
+	@echo "Running" $(patsubst %/small-movec-monitor, %, $@) "on small ..."
+	@$(MAKE) -C $(patsubst %/small-movec-monitor, %/movec-monitor, $@) small --no-print-directory
+
+large-movec-monitor: $(LARGES-movec-monitor)
+
+$(LARGES-movec-monitor): %/large-movec-monitor: %/output-movec-monitor
+	@echo ""
+	@echo "Running" $(patsubst %/large-movec-monitor, %, $@) "on large ..."
+	@$(MAKE) -C $(patsubst %/large-movec-monitor, %/movec-monitor, $@) large --no-print-directory
+
+clean-movec-monitor: $(CLEANS-movec-monitor)
+
+$(CLEANS-movec-monitor): %/clean-movec-monitor: %/movec-monitor
+	@$(MAKE) -C $< clean

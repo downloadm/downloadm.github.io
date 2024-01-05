@@ -1,0 +1,38 @@
+aspect countgets
+{
+  unsigned _countgets = 0;
+
+  advice get1 before get(unsigned char s2u[8192]) {
+    _countgets++;
+  }
+
+  advice get2 around get(unsigned char s2u[8192]) {
+    _countgets++;
+    proceed();
+  }
+
+  advice get3 after get(unsigned char s2u[8192]) {
+    _countgets++;
+  }
+
+  advice get4 before get(% u2s[256]) {
+    _countgets++;
+  }
+
+  advice get5 around get(% u2s[256]) {
+    _countgets++;
+    proceed();
+  }
+
+  advice get6 after get(% u2s[256]) {
+    _countgets++;
+  }
+
+  advice callMain after execution(% main(...)) {
+    fprintf(stderr, "End by main: Pointcuts are called [MSG: %u] times.\n", _countgets);
+  }
+
+  advice callExit before call(% exit(...)) {
+    fprintf(stderr, "End by exit: Pointcuts are called [MSG: %u] times.\n", _countgets);
+  }
+};
